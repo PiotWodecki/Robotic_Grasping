@@ -2,10 +2,8 @@ import argparse
 import logging
 
 import torch.utils.data
-import torch.nn as nn
 
 from models.common import post_process_output
-from models.ggcnn import GGCNN
 from utils.data_processing import evaluation, grasp
 from utils.data import get_dataset
 
@@ -48,14 +46,8 @@ if __name__ == '__main__':
     args = parse_args()
 
     # Load Network
-    # net = torch.load(args.network)
-    # net.eval()
-    # device = torch.device("cuda:0")
-
-    net = GGCNN()
-    net.load_state_dict(torch.load('/Users/piotrwodecki/Projects/GGCNN/ggcnn/output/models/221012_0857_training_example/epoch_14_iou_0.70_statedict.pt'))
-    net.eval()
-    device = torch.device("cpu")
+    net = torch.load(args.network)
+    device = torch.device("mps")
 
     # Load Dataset
     logging.info('Loading {} Dataset...'.format(args.dataset.title()))

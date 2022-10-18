@@ -16,12 +16,15 @@ import tensorboardX
 
 from utils.visualisation.gridshow import gridshow
 
-from utils.dataset_processing import evaluation
+from utils.data_processing import evaluation
 from utils.data import get_dataset
 from models import get_network
 from models.common import post_process_output
 
 logging.basicConfig(level=logging.INFO)
+
+device = torch.device("mps")
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Train GG-CNN')
@@ -63,6 +66,8 @@ def validate(net, device, val_data, batches_per_epoch):
     :param batches_per_epoch: Number of batches to run
     :return: Successes, Failures and Losses
     """
+
+    device = torch.device("mps")
     net.eval()
 
     results = {
@@ -88,22 +93,24 @@ def validate(net, device, val_data, batches_per_epoch):
                 yc = [yy.to(device) for yy in y]
                 lossd = net.compute_loss(xc, yc)
 
+                del xc, yc
+
                 loss = lossd['loss']
 
                 results['loss'] += loss.item()/ld
                 for ln, l in lossd['losses'].items():
                     if ln not in results['losses']:
                         results['losses'][ln] = 0
-                    results['losses'][ln] += l.item()/ld
+                    results['losses'][ln] += float(l.item()/ld)
 
                 q_out, ang_out, w_out = post_process_output(lossd['pred']['pos'], lossd['pred']['cos'],
                                                             lossd['pred']['sin'], lossd['pred']['width'])
-
                 s = evaluation.calculate_iou_match(q_out, ang_out,
                                                    val_data.dataset.get_gtbb(didx, rot, zoom_factor),
                                                    no_grasps=1,
                                                    grasp_width=w_out,
                                                    )
+                del q_out, ang_out, w_out
 
                 if s:
                     results['correct'] += 1
@@ -125,6 +132,8 @@ def train(epoch, net, device, train_data, optimizer, batches_per_epoch, vis=Fals
     :param vis:  Visualise training progress
     :return:  Average Losses for Epoch
     """
+
+    device = torch.device("mps")
     results = {
         'loss': 0,
         'losses': {
@@ -225,7 +234,8 @@ def run():
     ggcnn = get_network(args.network)
 
     net = ggcnn(input_channels=input_channels)
-    device = torch.device("cuda:0")
+    # device = torch.device("cuda:0")
+    device = torch.device("mps")
     net = net.to(device)
     optimizer = optim.Adam(net.parameters())
     logging.info('Done')
