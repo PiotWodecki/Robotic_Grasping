@@ -14,6 +14,7 @@ from torchsummary import summary
 
 import tensorboardX
 
+from utils.data_processing.device_handler import get_device
 from utils.visualisation.gridshow import gridshow
 
 from utils.data_processing import evaluation
@@ -22,8 +23,6 @@ from models import get_network
 from models.common import post_process_output
 
 logging.basicConfig(level=logging.INFO)
-
-device = torch.device("mps")
 
 
 def parse_args():
@@ -67,7 +66,7 @@ def validate(net, device, val_data, batches_per_epoch):
     :return: Successes, Failures and Losses
     """
 
-    device = torch.device("mps")
+    device = get_device()
     net.eval()
 
     results = {
@@ -133,7 +132,7 @@ def train(epoch, net, device, train_data, optimizer, batches_per_epoch, vis=Fals
     :return:  Average Losses for Epoch
     """
 
-    device = torch.device("mps")
+    device = get_device()
     results = {
         'loss': 0,
         'losses': {
@@ -234,8 +233,7 @@ def run():
     ggcnn = get_network(args.network)
 
     net = ggcnn(input_channels=input_channels)
-    # device = torch.device("cuda:0")
-    device = torch.device("mps")
+    device = get_device()
     net = net.to(device)
     optimizer = optim.Adam(net.parameters())
     logging.info('Done')

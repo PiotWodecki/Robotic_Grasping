@@ -3,6 +3,7 @@ import math
 
 # Press ⌃R to execute it or replace it with your code.
 # Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
+from utils.data_processing.device_handler import get_device
 
 
 def print_hi(name):
@@ -15,7 +16,7 @@ if __name__ == '__main__':
     print(torch.backends.mps.is_available())
     print(torch.backends.mps.is_built())
     dtype = torch.float
-    device = torch.device("mps")
+    device = get_device()
 
     # Create random input and output data
     x = torch.linspace(-math.pi, math.pi, 2000, device=device, dtype=dtype)

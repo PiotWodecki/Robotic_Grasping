@@ -2,6 +2,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch
 
+from utils.data_processing.device_handler import get_device
+
 filter_sizes = [32, 16, 8, 8, 16, 32]
 kernel_sizes = [9, 5, 3, 3, 5, 9]
 strides = [3, 2, 2, 2, 2, 3]
@@ -31,7 +33,8 @@ class GGCNN(nn.Module):
                 nn.init.xavier_uniform_(m.weight, gain=1)
 
     def forward(self, x):
-        x = x.to(torch.device("mps"))
+        device = get_device()
+        x = x.to(device)
         x = F.relu(self.conv1(x))
         x = F.relu(self.conv2(x))
         x = F.relu(self.conv3(x))
@@ -51,8 +54,7 @@ class GGCNN(nn.Module):
         y_pos, y_cos, y_sin, y_width = yc
 
         ########
-        # device = torch.device("cpu")
-        device = torch.device("mps")
+        device = get_device()
         y_pos, y_cos, y_sin, y_width = y_pos.to(device), y_cos.to(device), y_sin.to(device), y_width.to(device)
         ########
         pos_pred, cos_pred, sin_pred, width_pred = self(xc)

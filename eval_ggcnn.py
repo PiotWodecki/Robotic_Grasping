@@ -6,6 +6,7 @@ import torch.utils.data
 from models.common import post_process_output
 from utils.data_processing import evaluation, grasp
 from utils.data import get_dataset
+from utils.data_processing.device_handler import get_device
 
 logging.basicConfig(level=logging.INFO)
 
@@ -47,7 +48,7 @@ if __name__ == '__main__':
 
     # Load Network
     net = torch.load(args.network)
-    device = torch.device("mps")
+    device = get_device()
 
     # Load Dataset
     logging.info('Loading {} Dataset...'.format(args.dataset.title()))
