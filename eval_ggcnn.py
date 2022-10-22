@@ -4,6 +4,7 @@ import logging
 import torch.utils.data
 
 from models.common import post_process_output
+from models.ggcnn import GGCNN
 from utils.data_processing import evaluation, grasp
 from utils.data import get_dataset
 from utils.data_processing.device_handler import get_device
@@ -46,11 +47,18 @@ def parse_args():
 if __name__ == '__main__':
     args = parse_args()
 
-    # Load Network
-    net = torch.load(args.network)
+    # # Load Network
+    # device = get_device()
+    # net = torch.load(args.network, map_location=device)
+
     device = get_device()
+    net = GGCNN()
+    net.load_state_dict(torch.load(args.network, map_location=device))
+    net.eval()
+
 
     # Load Dataset
+    logging.info('Your device: '.format(str(device)))
     logging.info('Loading {} Dataset...'.format(args.dataset.title()))
     Dataset = get_dataset(args.dataset)
     test_dataset = Dataset(args.dataset_path, start=args.split, end=1.0, ds_rotate=args.ds_rotate,
@@ -83,6 +91,10 @@ if __name__ == '__main__':
 
             if args.iou_eval:
                 s = evaluation.calculate_iou_match(q_img, ang_img, test_data.dataset.get_gtbb(didx, rot, zoom),
+                                                   no_grasps=args.n_grasps,
+                                                   grasp_width=width_img,
+                                                   )
+                ious = evaluation.calculate_iou(q_img, ang_img, test_data.dataset.get_gtbb(didx, rot, zoom),
                                                    no_grasps=args.n_grasps,
                                                    grasp_width=width_img,
                                                    )
