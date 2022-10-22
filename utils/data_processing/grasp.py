@@ -275,6 +275,7 @@ class GraspRectangle:
         try:
             r_max = max(rr1.max(), rr2.max()) + 1
             c_max = max(cc1.max(), cc2.max()) + 1
+
         except:
             return 0
 
@@ -282,8 +283,10 @@ class GraspRectangle:
         canvas[rr1, cc1] += 1
         canvas[rr2, cc2] += 1
         union = np.sum(canvas > 0)
+
         if union == 0:
             return 0
+
         intersection = np.sum(canvas == 2)
         return intersection/union
 
