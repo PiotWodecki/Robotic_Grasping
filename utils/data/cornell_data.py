@@ -1,8 +1,16 @@
 import os
 import glob
 
+import albumentations.core.bbox_utils
+import numpy as np
+from matplotlib import pyplot as plt
+import matplotlib.image as mpimg
+import tifffile as tiff
+
 from utils.data.grasp_data import GraspDatasetBase
+from utils.data_augmentation.data_augmentator import apply_data_augmentation
 from utils.data_processing import grasp, image
+from utils.data_processing.grasp import GraspRectangles
 
 
 class CornellDataset(GraspDatasetBase):
@@ -43,6 +51,9 @@ class CornellDataset(GraspDatasetBase):
         return center, left, top
 
     def get_gtbb(self, idx, rot=0, zoom=1.0):
+        """
+        get ground truth bounding boxes
+        """
         gtbbs = grasp.GraspRectangles.load_from_cornell_file(self.grasp_files[idx])
         center, left, top = self._get_crop_attrs(idx)
         gtbbs.rotate(rot, center)
@@ -71,3 +82,22 @@ class CornellDataset(GraspDatasetBase):
             rgb_img.normalise()
             rgb_img.img = rgb_img.img.transpose((2, 0, 1))
         return rgb_img.img
+
+
+if __name__ == '__main__':
+    cornell = CornellDataset('/Users/piotrwodecki/Projects/Grasping/cornell_grasp')
+    grasp_rectangles = GraspRectangles()
+    rectangles = grasp_rectangles.load_from_cornell_file(cornell.grasp_files[0])
+    bboxes = rectangles.get_albumentations_coco_bboxes()
+    rectangles = cornell.get_gtbb(0)
+    bboxes = rectangles.get_albumentations_coco_bboxes()
+    img = cornell.get_depth(0)
+    transformed = apply_data_augmentation(image=img, bboxes=bboxes)
+    img_transformed, bboxes_transformed = transformed['image'], transformed['bboxes']
+    print()
+    rectangles.load_from_transformed_bboxes(bboxes_transformed)
+    rectangles.show(ax=None, shape=img_transformed.shape, img=img_transformed)
+
+
+
+
