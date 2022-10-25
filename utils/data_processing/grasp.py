@@ -1,3 +1,4 @@
+import cv2
 import numpy as np
 
 import matplotlib.pyplot as plt
@@ -42,6 +43,23 @@ class GraspRectangles:
             return lambda *args, **kwargs: list(map(lambda gr: getattr(gr, attr)(*args, **kwargs), self.grs))
         else:
             raise AttributeError("Couldn't find function %s in BoundingBoxes or BoundingBox" % attr)
+
+
+    @classmethod
+    def load_from_transformed_bboxes(cls, list_of_rectangles):
+        """
+        Load grasp rectangles from list which is returned from albumentations
+        :param lst: List of bboxes transformed from albumentations library
+        :return:
+        """
+        grs = []
+        for rectangle in list_of_rectangles:
+            rect = list(rectangle)
+            rect = rect[:-1]
+            rect = [int(x) for x in rect]
+            grs.append(rect)
+
+        return grs
 
     @classmethod
     def load_from_array(cls, arr):
@@ -123,7 +141,7 @@ class GraspRectangles:
             new_grs.append(gr.copy())
         return new_grs
 
-    def show(self, ax=None, shape=None):
+    def show(self, ax=None, shape=None, img=None):
         """
         Draw all GraspRectangles on a matplotlib plot.
         :param ax: (optional) existing axis
@@ -132,12 +150,16 @@ class GraspRectangles:
         if ax is None:
             f = plt.figure()
             ax = f.add_subplot(1, 1, 1)
-            ax.imshow(np.zeros(shape))
+            if img is None:
+                ax.imshow(np.zeros(shape))
+            else:
+                ax.imshow(img)
             ax.axis([0, shape[1], shape[0], 0])
             self.plot(ax)
             plt.show()
         else:
             self.plot(ax)
+            plt.show()
 
     def draw(self, shape, position=True, angle=True, width=True):
         """
@@ -192,6 +214,40 @@ class GraspRectangles:
         """
         points = [gr.points for gr in self.grs]
         return np.mean(np.vstack(points), axis=0).astype(np.int)
+
+    def get_albumentations_coco_bboxes(self) -> list[list]:
+        """
+        Prepare bounding boxes in "yolo" for albumentations library
+        :return: list of normalized [x_center, y_center, width, height, angle] for each bbox
+        """
+        #yolo needs width and height of the image so I will take coco
+        coco = []
+        for rectangle in self.grs:
+            x_min = min([x[0] for x in rectangle.points])
+            y_min = min([y[1] for y in rectangle.points])
+            x_max = max([x[0] for x in rectangle.points])
+            y_max = max([y[1] for y in rectangle.points])
+            width = x_max - x_min
+            height = abs(y_min - y_max)
+            coco.append([x_min, y_min, width, height, 5])
+
+        return coco
+
+    def get_albumentations_pascal_voc_bboxes(self) -> list[list]:
+        """
+        Prepare bounding boxes in "yolo" for albumentations library
+        :return: list of normalized [x_center, y_center, width, height, angle] for each bbox
+        """
+        #yolo needs width and height of the image so I will take coco
+        coco = []
+        for rectangle in self.grs:
+            x_min = min([x[0] for x in rectangle.points])
+            y_min = min([y[1] for y in rectangle.points])
+            x_max = max([x[0] for x in rectangle.points])
+            y_max = max([y[1] for y in rectangle.points])
+            coco.append([x_min, y_min, x_max, y_max, 5])
+
+        return coco
 
 
 class GraspRectangle:
