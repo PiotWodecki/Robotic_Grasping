@@ -22,14 +22,30 @@ class FineTuningDataset(GraspDatasetBase):
 
         self.grasp_files = self.jacquard_dataset.grasp_files + self.cornell_grasp.grasp_files
         self.depth_files = self.cornell_grasp.depth_files + self.jacquard_dataset.depth_files
-        self.rgb_files = self.cornell_grasp.rgb_files + self.jacquard_dataset.rgb_files
 
-    def get_gtbb(self, idx, rot=0, zoom=1.0):
+        if self.include_rgb == 1:
+            self.rgb_files = self.cornell_grasp.rgb_files + self.jacquard_dataset.rgb_files
+
+        # del self.jacquard_dataset
+        # del self.cornell_grasp
+
+    def get_gtbb(self, idx):
         """
         Function to use correct get_gtbb function depending on the dataset
         """
-        if self.grasp_files[idx][-6:] == 'd.tiff':
+        if self.grasp_files[idx][-8:] == 'cpos.txt':
             return self.cornell_grasp.get_gtbb(idx)
         else:
             return self.jacquard_dataset.get_gtbb(idx)
 
+    def get_depth(self, idx):
+        if self.depth_files[idx][-6:] == 'd.tiff':
+            return self.cornell_grasp.get_depth(idx)
+        else:
+            return self.jacquard_dataset.get_depth(idx)
+
+    def get_observation_dataset_name(self, idx):
+        if self.depth_files[idx][-6:] == 'd.tiff':
+            return 'cornell'
+        else:
+            return 'jacquard'

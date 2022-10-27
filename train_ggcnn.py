@@ -15,6 +15,7 @@ from torchsummary import summary
 import tensorboardX
 
 from utils.data_processing.device_handler import get_device
+from utils.data_processing.fine_tune_dataset_creator import apply_augmentation_to_dataset
 from utils.visualisation.gridshow import gridshow
 
 from utils.data_processing import evaluation
@@ -290,6 +291,8 @@ def train_with_fine_tuning(args):
                                     random_rotate=True, random_zoom=True,
                                     include_depth=args.use_depth, include_rgb=args.use_rgb)
 
+
+    train_dataset_augmented = apply_augmentation_to_dataset(train_dataset)
     train_data = torch.utils.data.DataLoader(
         train_dataset,
         batch_size=args.batch_size,

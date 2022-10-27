@@ -1,9 +1,12 @@
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+from skimage import io
 from imageio import imread
 from skimage.transform import rotate, resize
 from PIL import Image
+import tifffile
+import cv2
 
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -23,7 +26,7 @@ class Image:
     @classmethod
     def from_file(cls, fname):
         # return cls(imread(fname))
-        return cls(Image.open(fname))
+        return cls(tifffile.imread(fname))
 
     def copy(self):
         """
@@ -169,9 +172,12 @@ class DepthImage(Image):
 
     @classmethod
     def from_tiff(cls, fname):
-        # return cls(imread(fname))
-        # return cls(Image.open(fname))
-        return cls(plt.imread(fname))
+        if "cornell" in fname:
+            return cls(tifffile.imread(fname))
+        else:
+            im = cv2.imread(fname, -1)
+            imarray = np.array(im)
+            return cls(imarray)
 
     def inpaint(self, missing_value=0):
         """

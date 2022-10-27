@@ -62,14 +62,14 @@ class GraspDatasetBase(torch.utils.data.Dataset):
 
         # Load the depth image
         if self.include_depth:
-            depth_img = self.get_depth(idx, rot, zoom_factor)
+            depth_img = self.get_depth(idx)
 
         # Load the RGB image
         if self.include_rgb:
-            rgb_img = self.get_rgb(idx, rot, zoom_factor)
+            rgb_img = self.get_rgb(idx)
 
         # Load the grasps
-        bbs = self.get_gtbb(idx, rot, zoom_factor)
+        bbs = self.get_gtbb(idx)
 
         pos_img, ang_img, width_img = bbs.draw((self.output_size, self.output_size))
         width_img = np.clip(width_img, 0.0, 150.0)/150.0
