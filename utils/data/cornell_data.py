@@ -1,15 +1,10 @@
 import os
 import glob
 
-import albumentations.core.bbox_utils
-import numpy as np
-from matplotlib import pyplot as plt
-import matplotlib.image as mpimg
-import tifffile as tiff
-
 from utils.data.grasp_data import GraspDatasetBase
 from utils.data_augmentation.data_augmentator import apply_data_augmentation
 from utils.data_processing import grasp, image
+from utils.data_processing.generate_transformated_bboxes import set_rectangles_angles, build_rectangle
 from utils.data_processing.grasp import GraspRectangles
 
 
@@ -87,16 +82,22 @@ class CornellDataset(GraspDatasetBase):
 if __name__ == '__main__':
     cornell = CornellDataset('/Users/piotrwodecki/Projects/Grasping/cornell_grasp')
     grasp_rectangles = GraspRectangles()
-    rectangles = grasp_rectangles.load_from_cornell_file(cornell.grasp_files[0])
-    bboxes = rectangles.get_albumentations_coco_bboxes()
-    rectangles = cornell.get_gtbb(0)
-    bboxes = rectangles.get_albumentations_coco_bboxes()
-    img = cornell.get_depth(0)
+    grasp_rectangles_transformed = GraspRectangles()
+
+    rectangles = cornell.get_gtbb(5)
+    rectanles_non_rotated, angles = set_rectangles_angles(rectangles)
+
+    bboxes = rectanles_non_rotated.get_albumentations_coco_bboxes(angles)
+
+    img = cornell.get_depth(5)
+    rectangles.show(ax=None, shape=img.shape, img=img)
+    rectanles_non_rotated.show(ax=None, shape=img.shape, img=img)
+
     transformed = apply_data_augmentation(image=img, bboxes=bboxes)
     img_transformed, bboxes_transformed = transformed['image'], transformed['bboxes']
-    print()
-    rectangles.load_from_transformed_bboxes(bboxes_transformed)
-    rectangles.show(ax=None, shape=img_transformed.shape, img=img_transformed)
+    rectangles_rotated = build_rectangle(bboxes_transformed)
+    rectangles_rotated.show(ax=None, shape=img_transformed.shape, img=img_transformed)
+
 
 
 

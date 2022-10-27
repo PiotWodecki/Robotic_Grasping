@@ -44,23 +44,6 @@ class GraspRectangles:
         else:
             raise AttributeError("Couldn't find function %s in BoundingBoxes or BoundingBox" % attr)
 
-
-    @classmethod
-    def load_from_transformed_bboxes(cls, list_of_rectangles):
-        """
-        Load grasp rectangles from list which is returned from albumentations
-        :param lst: List of bboxes transformed from albumentations library
-        :return:
-        """
-        grs = []
-        for rectangle in list_of_rectangles:
-            rect = list(rectangle)
-            rect = rect[:-1]
-            rect = [int(x) for x in rect]
-            grs.append(rect)
-
-        return grs
-
     @classmethod
     def load_from_array(cls, arr):
         """
@@ -161,6 +144,7 @@ class GraspRectangles:
             self.plot(ax)
             plt.show()
 
+
     def draw(self, shape, position=True, angle=True, width=True):
         """
         Plot all GraspRectangles as solid rectangles in a numpy array, e.g. as network training data.
@@ -215,30 +199,33 @@ class GraspRectangles:
         points = [gr.points for gr in self.grs]
         return np.mean(np.vstack(points), axis=0).astype(np.int)
 
-    def get_albumentations_coco_bboxes(self) -> list[list]:
+    def get_albumentations_coco_bboxes(self, old_angles = None) -> list[list]:
         """
-        Prepare bounding boxes in "yolo" for albumentations library
-        :return: list of normalized [x_center, y_center, width, height, angle] for each bbox
-        """
-        #yolo needs width and height of the image so I will take coco
-        coco = []
-        for rectangle in self.grs:
-            x_min = min([x[0] for x in rectangle.points])
-            y_min = min([y[1] for y in rectangle.points])
-            x_max = max([x[0] for x in rectangle.points])
-            y_max = max([y[1] for y in rectangle.points])
-            width = x_max - x_min
-            height = abs(y_min - y_max)
-            coco.append([x_min, y_min, width, height, 5])
+        Prepare bounding boxes in coco format for albumentations library
+        Coco format contains [x_center, y_center, width, height] and the rest of arguments will be untouched,
+        so there is added angles and center for building new rectangles after transformation
 
-        return coco
+        :return: List[x_center, y_center, width, height, angle, center] for each bbox
+        """
+        if old_angles is None:
+            pass
+        else:
+            coco = []
+            for idx, rectangle in enumerate(self.grs):
+                x_min = min([x[0] for x in rectangle.points])
+                y_min = min([y[1] for y in rectangle.points])
+                x_max = max([x[0] for x in rectangle.points])
+                y_max = max([y[1] for y in rectangle.points])
+                width = x_max - x_min
+                height = abs(y_min - y_max)
+                coco.append([x_min, y_min, width, height, old_angles[idx], [rectangle.center[0], rectangle.center[1]]])
+
+            return coco
 
     def get_albumentations_pascal_voc_bboxes(self) -> list[list]:
         """
-        Prepare bounding boxes in "yolo" for albumentations library
-        :return: list of normalized [x_center, y_center, width, height, angle] for each bbox
+        Prepare bounding boxes  to transform in pascal voc format
         """
-        #yolo needs width and height of the image so I will take coco
         coco = []
         for rectangle in self.grs:
             x_min = min([x[0] for x in rectangle.points])
