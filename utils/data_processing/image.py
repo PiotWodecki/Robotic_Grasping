@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from imageio import imread
 from skimage.transform import rotate, resize
+from PIL import Image
 
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -21,7 +22,8 @@ class Image:
 
     @classmethod
     def from_file(cls, fname):
-        return cls(imread(fname))
+        # return cls(imread(fname))
+        return cls(Image.open(fname))
 
     def copy(self):
         """
@@ -167,7 +169,9 @@ class DepthImage(Image):
 
     @classmethod
     def from_tiff(cls, fname):
-        return cls(imread(fname))
+        # return cls(imread(fname))
+        # return cls(Image.open(fname))
+        return cls(plt.imread(fname))
 
     def inpaint(self, missing_value=0):
         """

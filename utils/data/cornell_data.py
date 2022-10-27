@@ -2,6 +2,7 @@ import os
 import glob
 
 from utils.data.grasp_data import GraspDatasetBase
+from utils.data.jacquard_data import JacquardDataset
 from utils.data_augmentation.data_augmentator import apply_data_augmentation
 from utils.data_processing import grasp, image
 from utils.data_processing.generate_transformated_bboxes import set_rectangles_angles, build_rectangle
@@ -80,16 +81,16 @@ class CornellDataset(GraspDatasetBase):
 
 
 if __name__ == '__main__':
-    cornell = CornellDataset('/Users/piotrwodecki/Projects/Grasping/cornell_grasp')
+    cornell = JacquardDataset('/Users/piotrwodecki/Projects/Grasping/Samples')
     grasp_rectangles = GraspRectangles()
     grasp_rectangles_transformed = GraspRectangles()
 
-    rectangles = cornell.get_gtbb(5)
+    rectangles = cornell.get_gtbb(2)
     rectanles_non_rotated, angles = set_rectangles_angles(rectangles)
 
     bboxes = rectanles_non_rotated.get_albumentations_coco_bboxes(angles)
 
-    img = cornell.get_depth(5)
+    img = cornell.get_depth(2)
     rectangles.show(ax=None, shape=img.shape, img=img)
     rectanles_non_rotated.show(ax=None, shape=img.shape, img=img)
 
