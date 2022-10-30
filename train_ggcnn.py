@@ -15,7 +15,7 @@ from torchsummary import summary
 import tensorboardX
 
 from utils.data_processing.device_handler import get_device
-from utils.data_processing.fine_tune_dataset_creator import apply_augmentation_to_dataset
+# from utils.data_processing.fine_tune_dataset_creator import apply_augmentation_to_dataset
 from utils.visualisation.gridshow import gridshow
 
 from utils.data_processing import evaluation
@@ -285,29 +285,60 @@ def train_with_fine_tuning(args):
         os.makedirs(save_folder)
     tb = tensorboardX.SummaryWriter(os.path.join(args.logdir, net_desc))
 
+
+    """
+    apply data augmentation here ///// wiem, zmienilem to jak to wyglada, wiec najprosciej chyba dopisac ify w metodach
+    od typu danych: na poczatku finetuningdatasset to sciezki do pliku, a potem juz przeczytane pliki
+    
+    zrobic try except na applydataaugmentation ze wzgledu na split moj zbior danych sie zmienia i indeks mi sie rozjezdz
+    """
     logging.info('Loading {} Dataset and {} to fine tune'.format(args.dataset.title(), args.fine_tuning_dataset.title()))
-    train_dataset = FineTuningDataset(args.dataset_path, args.fine_tuning_path, start=0.0, end=args.split,
-                                    ds_rotate=args.ds_rotate,
+
+    whole_dataset = FineTuningDataset(args.dataset_path, args.fine_tuning_path, ds_rotate=args.ds_rotate,
                                     random_rotate=True, random_zoom=True,
                                     include_depth=args.use_depth, include_rgb=args.use_rgb)
 
+    whole_dataset = whole_dataset.apply_augmentation_to_dataset_refactored(args.dataset_path, args.fine_tuning_path)
 
-    train_dataset_augmented = apply_augmentation_to_dataset(train_dataset)
+    train_dataset = whole_dataset.get_part_of_dataset(start=0.0, end=args.split)
     train_data = torch.utils.data.DataLoader(
         train_dataset,
         batch_size=args.batch_size,
         shuffle=True,
         num_workers=args.num_workers
     )
-    val_dataset = FineTuningDataset(args.dataset_path, args.fine_tuning_path, start=args.split, end=1.0, ds_rotate=args.ds_rotate,
-                          random_rotate=True, random_zoom=True,
-                          include_depth=args.use_depth, include_rgb=args.use_rgb)
+
+    val_dataset = whole_dataset.get_part_of_dataset(start=args.split, end=1.0)
     val_data = torch.utils.data.DataLoader(
         val_dataset,
-        batch_size=1,
-        shuffle=False,
+        batch_size=args.batch_size,
+        shuffle=True,
         num_workers=args.num_workers
     )
+
+    # train_dataset = FineTuningDataset(args.dataset_path, args.fine_tuning_path, start=0.0, end=args.split,
+    #                                 ds_rotate=args.ds_rotate,
+    #                                 random_rotate=True, random_zoom=True,
+    #                                 include_depth=args.use_depth, include_rgb=args.use_rgb)
+    #
+    # train_dataset_augmented = train_dataset.apply_augmentation_to_dataset_refactored\
+    #     (args.dataset_path, args.fine_tuning_path)
+    #
+    # train_data = torch.utils.data.DataLoader(
+    #     train_dataset_augmented,
+    #     batch_size=args.batch_size,
+    #     shuffle=True,
+    #     num_workers=args.num_workers
+    # )
+    # val_dataset = FineTuningDataset(args.dataset_path, args.fine_tuning_path, start=args.split, end=1.0, ds_rotate=args.ds_rotate,
+    #                       random_rotate=True, random_zoom=True,
+    #                       include_depth=args.use_depth, include_rgb=args.use_rgb)
+    # val_data = torch.utils.data.DataLoader(
+    #     val_dataset,
+    #     batch_size=1,
+    #     shuffle=False,
+    #     num_workers=args.num_workers
+    # )
     logging.info('Done')
 
     # Load the network
