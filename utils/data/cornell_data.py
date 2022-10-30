@@ -46,6 +46,14 @@ class CornellDataset(GraspDatasetBase):
         top = max(0, min(center[0] - self.output_size // 2, 480 - self.output_size))
         return center, left, top
 
+    def get_depth_by_file_name(self, name):
+        idx = self.depth_files.index(name)
+        return self.get_depth(idx)
+
+    def get_gtbb_by_file_name(self, name):
+        idx = self.grasp_files.index(name)
+        return self.get_gtbb(idx)
+
     def get_gtbb(self, idx, rot=0, zoom=1.0):
         """
         get ground truth bounding boxes

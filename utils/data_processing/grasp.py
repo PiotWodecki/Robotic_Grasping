@@ -144,7 +144,6 @@ class GraspRectangles:
             self.plot(ax)
             plt.show()
 
-
     def draw(self, shape, position=True, angle=True, width=True):
         """
         Plot all GraspRectangles as solid rectangles in a numpy array, e.g. as network training data.

@@ -1,5 +1,4 @@
 import albumentations as A
-import numpy as np
 
 
 def apply_data_augmentation(image, bboxes, observation_dataset='cornell'):

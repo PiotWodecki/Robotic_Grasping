@@ -43,17 +43,24 @@ class JacquardDataset(GraspDatasetBase):
         gtbbs.zoom(zoom, (c, c))
         return gtbbs
 
-    def get_depth(self, idx, rot=0, zoom=1.0):
-        try:
-            depth_img = image.DepthImage.from_tiff(self.depth_files[idx])
-        except IndexError:
-            print(idx)
+    def get_depth_by_file_name(self, name):
+        idx = self.depth_files.index(name)
+        return self.get_depth(idx)
 
+    def get_gtbb_by_file_name(self, name):
+        idx = self.grasp_files.index(name)
+        return self.get_gtbb(idx)
+
+    def get_depth(self, idx, rot=0, zoom=1.0):
+        # try:
+        depth_img = image.DepthImage.from_tiff(self.depth_files[idx])
         depth_img.rotate(rot)
         depth_img.normalise()
         depth_img.zoom(zoom)
         depth_img.resize((self.output_size, self.output_size))
-        return depth_img.img
+        return depth_img
+        # except IndexError:
+        #     print(idx)
 
     def get_rgb(self, idx, rot=0, zoom=1.0, normalise=True):
         rgb_img = image.Image.from_file(self.rgb_files[idx])

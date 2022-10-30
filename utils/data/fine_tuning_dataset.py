@@ -43,30 +43,44 @@ class FineTuningDataset(GraspDatasetBase):
         # del self.jacquard_dataset
         # del self.cornell_grasp
 
-    def get_gtbb(self, idx):
+    def get_gtbb_by_name(self, name):
         """
         Function to use correct get_gtbb function depending on the dataset
         """
-        if self.grasp_files[idx][-8:] == 'cpos.txt':
-            return self.cornell_grasp.get_gtbb(idx)
+        if name[-8:] == 'cpos.txt':
+            return self.cornell_grasp.get_gtbb_by_file_name(name)
         else:
-            return self.jacquard_dataset.get_gtbb(idx)
+            return self.jacquard_dataset.get_gtbb_by_file_name(name)
+
+    # def get_depth(self, idx):
+    #     if 'd.tiff' in self.depth_files[idx][-6:]:
+    #         return self.cornell_grasp.get_depth(idx)
+    #     else:
+    #         try:
+    #             tmp = self.jacquard_dataset.get_depth(idx)
+    #             return tmp
+    #         except IndexError:
+    #             idx = idx - len(self.cornell_grasp)
+    #             return self.jacquard_dataset.get_depth(idx)
 
     def get_depth(self, idx):
-        if 'd.tiff' in self.depth_files[idx][-6:]:
-            return self.cornell_grasp.get_depth(idx)
-        else:
-            try:
-                return self.jacquard_dataset.get_depth(idx)
-            except IndexError:
-                idx = idx - len(self.cornell_grasp)
-                return self.jacquard_dataset.get_depth(idx)
+        return self.depth_files[idx]
+
+    def get_gtbb(self, idx):
+        return self.grasp_files[idx]
 
     def get_observation_dataset_name(self, idx):
         if self.depth_files[idx][-6:] == 'd.tiff':
             return 'cornell'
         else:
             return 'jacquard'
+
+    def get_depth_image_from_name(self, name):
+        if name[-6:] == 'd.tiff':
+            return self.cornell_grasp.get_depth_by_file_name(name)
+        else:
+            return self.jacquard_dataset.get_depth_by_file_name(name)
+
 
     def get_part_of_dataset(self, start, end):
         splitted_dataset = copy.deepcopy(self)
@@ -102,7 +116,8 @@ class FineTuningDataset(GraspDatasetBase):
             fine_tuned_dataset.depth_files = img_transformed
 
     def apply_augmentation_to_dataset_refactored(self, cornell, jacquard):
-        fine_tuned_dataset = FineTuningDataset(cornell, jacquard)
+        fine_tuned_dataset = copy.deepcopy(self)
+
         for idx in enumerate(self.depth_files):
             indeks = idx[0]
             observation_dataset_name = 'cornell'
@@ -110,18 +125,18 @@ class FineTuningDataset(GraspDatasetBase):
                 indeks = indeks - len(self.cornell_grasp)
                 observation_dataset_name = 'jacquard'
 
-            print(indeks)
-            rectangles = self.get_gtbb(indeks)
-            img = self.get_depth(indeks)
+            rectangles_name = self.get_gtbb(indeks)
+            rectangles = self.get_gtbb_by_name(rectangles_name)
+            img_name = self.get_depth(indeks)
+            img = self.get_depth_image_from_name(img_name)
             rectangles_non_rotated, angles = set_rectangles_angles(rectangles)
             bboxes = rectangles_non_rotated.get_albumentations_coco_bboxes(angles)
             transformed = apply_data_augmentation(image=img, bboxes=bboxes,
                                                   observation_dataset=observation_dataset_name)
             img_transformed, bboxes_transformed = transformed['image'], transformed['bboxes']
-            fine_tuned_dataset.grasp_files[idx[0]] = bboxes_transformed
+            rectangles_rotated = build_rectangle(bboxes_transformed)
+            fine_tuned_dataset.grasp_files[idx[0]] = rectangles_rotated
             fine_tuned_dataset.depth_files[idx[0]] = img_transformed
-
-            #reset indeksu??????? co jak wchodzi do jacquarda i jest out of range
 
         return fine_tuned_dataset
 
