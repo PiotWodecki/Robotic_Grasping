@@ -148,8 +148,7 @@ class FineTuningDataset(GraspDatasetBase):
             img = self.get_depth_image_from_name(img_name)
             rectangles_non_rotated, angles = set_rectangles_angles(rectangles)
             bboxes = rectangles_non_rotated.get_albumentations_coco_bboxes(angles)
-            transformed = apply_data_augmentation(image=img, bboxes=bboxes,
-                                                  observation_dataset=observation_dataset_name)
+            transformed = apply_data_augmentation(image=img, bboxes=bboxes)
             img_transformed, bboxes_transformed = transformed['image'], transformed['bboxes']
             rectangles_rotated = build_rectangle(bboxes_transformed)
             fine_tuned_dataset.grasp_files[idx[0]] = rectangles_rotated
