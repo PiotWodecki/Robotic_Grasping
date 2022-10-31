@@ -311,7 +311,7 @@ def train_with_fine_tuning(args):
     val_dataset = whole_dataset.get_part_of_dataset(start=args.split, end=1.0)
     val_data = torch.utils.data.DataLoader(
         val_dataset,
-        batch_size=args.batch_size,
+        batch_size = 1,
         shuffle=True,
         num_workers=args.num_workers
     )
