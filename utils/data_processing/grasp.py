@@ -61,6 +61,11 @@ class GraspRectangles:
         return cls(grs)
 
     @classmethod
+    def load_from_list(cls, list_of_grasp_rectangles):
+        grs = []
+        pass
+
+    @classmethod
     def load_from_cornell_file(cls, fname):
         """
         Load grasp rectangles from a Cornell dataset grasp file.

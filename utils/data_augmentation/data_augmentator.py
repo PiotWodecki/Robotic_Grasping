@@ -1,14 +1,15 @@
 import albumentations as A
 
 
-def apply_data_augmentation(image, bboxes, observation_dataset='cornell'):
+def apply_data_augmentation(image, bboxes):
     """
-    this function apply data augmentation to both image and bboxes.
+    this function apply data augmentation to both image and bboxes. Cornell dataset always has max 10 rectangles,
+    flips and rotates dont work for jacquards observation - that is why there is implemented two different transofrmations
     :param image: Image
     :param bboxes: Grasp rectangles
     :return: Transformed image and transformed grasp rectangles
     """
-    if observation_dataset == 'cornell':
+    if len(bboxes) > 20:
         transform = A.Compose([
             A.OneOf([
                 A.VerticalFlip(p=0.5),
@@ -24,7 +25,6 @@ def apply_data_augmentation(image, bboxes, observation_dataset='cornell'):
                 A.MedianBlur(blur_limit=3, p=0.2)], p=0.3)
         ], bbox_params=A.BboxParams(format='coco'))
         transformed = transform(image=image, bboxes=bboxes)
-
     else:
         transform = A.Compose([
             A.RandomBrightnessContrast(p=0.1),

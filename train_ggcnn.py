@@ -110,7 +110,7 @@ def validate(net, device, val_data, batches_per_epoch):
                 q_out, ang_out, w_out = post_process_output(lossd['pred']['pos'], lossd['pred']['cos'],
                                                             lossd['pred']['sin'], lossd['pred']['width'])
                 s = evaluation.calculate_iou_match(q_out, ang_out,
-                                                   val_data.dataset.get_gtbb(didx, rot, zoom_factor),
+                                                   val_data.dataset.get_gtbb(didx),
                                                    no_grasps=1,
                                                    grasp_width=w_out,
                                                    )
@@ -295,7 +295,7 @@ def train_with_fine_tuning(args):
     logging.info('Loading {} Dataset and {} to fine tune'.format(args.dataset.title(), args.fine_tuning_dataset.title()))
 
     whole_dataset = FineTuningDataset(args.dataset_path, args.fine_tuning_path, ds_rotate=args.ds_rotate,
-                                    random_rotate=True, random_zoom=True,
+                                    random_rotate=False, random_zoom=False,
                                     include_depth=args.use_depth, include_rgb=args.use_rgb)
 
     whole_dataset = whole_dataset.apply_augmentation_to_dataset_refactored(args.dataset_path, args.fine_tuning_path)
@@ -316,29 +316,6 @@ def train_with_fine_tuning(args):
         num_workers=args.num_workers
     )
 
-    # train_dataset = FineTuningDataset(args.dataset_path, args.fine_tuning_path, start=0.0, end=args.split,
-    #                                 ds_rotate=args.ds_rotate,
-    #                                 random_rotate=True, random_zoom=True,
-    #                                 include_depth=args.use_depth, include_rgb=args.use_rgb)
-    #
-    # train_dataset_augmented = train_dataset.apply_augmentation_to_dataset_refactored\
-    #     (args.dataset_path, args.fine_tuning_path)
-    #
-    # train_data = torch.utils.data.DataLoader(
-    #     train_dataset_augmented,
-    #     batch_size=args.batch_size,
-    #     shuffle=True,
-    #     num_workers=args.num_workers
-    # )
-    # val_dataset = FineTuningDataset(args.dataset_path, args.fine_tuning_path, start=args.split, end=1.0, ds_rotate=args.ds_rotate,
-    #                       random_rotate=True, random_zoom=True,
-    #                       include_depth=args.use_depth, include_rgb=args.use_rgb)
-    # val_data = torch.utils.data.DataLoader(
-    #     val_dataset,
-    #     batch_size=1,
-    #     shuffle=False,
-    #     num_workers=args.num_workers
-    # )
     logging.info('Done')
 
     # Load the network

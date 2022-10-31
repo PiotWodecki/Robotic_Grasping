@@ -1,6 +1,8 @@
 import copy
 import warnings
 
+import torch
+
 from utils.data.cornell_data import CornellDataset
 from utils.data.grasp_data import GraspDatasetBase
 from utils.data.jacquard_data import JacquardDataset
@@ -52,22 +54,53 @@ class FineTuningDataset(GraspDatasetBase):
         else:
             return self.jacquard_dataset.get_gtbb_by_file_name(name)
 
-    # def get_depth(self, idx):
-    #     if 'd.tiff' in self.depth_files[idx][-6:]:
-    #         return self.cornell_grasp.get_depth(idx)
-    #     else:
-    #         try:
-    #             tmp = self.jacquard_dataset.get_depth(idx)
-    #             return tmp
-    #         except IndexError:
-    #             idx = idx - len(self.cornell_grasp)
-    #             return self.jacquard_dataset.get_depth(idx)
-
     def get_depth(self, idx):
         return self.depth_files[idx]
 
-    def get_gtbb(self, idx):
-        return self.grasp_files[idx]
+    def get_gtbb(self, idxs):
+        if isinstance(idxs, int):
+            return self.grasp_files[idxs]
+        else:
+            return self.grasp_files[idxs.item()]
+        #     # # arr = np.zeros(idxs.shape[0])
+        #     arr_for_tensors = []
+        #     for i, idx in enumerate(idxs):
+        #         arr = self.grasp_files[idx].to_array()
+        #         arr_for_tensors.append(arr)
+        #     # #     # np.insert(arr, i, self.grasp_files[idx])
+        #     # #
+        #     arr_for_tensors = np.array(arr_for_tensors)
+        #     tensor = torch.tensor(arr_for_tensors)
+        #     tensor = tensor.squueze()
+            # return np.array(arr, dtype=object)
+            # return self.grasp_files[idxs]
+        return tensor
+
+    def get_points_of_grasping_rectangle(self):
+        pass
+
+    def get_gtbb_for_validation(self, idxs, rot, zoom):
+        grasp_rectangles = []
+        for idx in idxs:
+            if len(self.grasp_files[idx].grs) > 20:
+                gtbbs = copy.deepcopy(self.grasp_files[idx])
+                for i, gtbb in enumerate(gtbbs):
+                    c = self.output_size // 2
+                    gtbb.rotate(rot, (c, c))
+                    gtbb.zoom(zoom, (c, c))
+                    gtbbs[i] = gtbb
+                grasp_rectangles.append(gtbbs)
+            else:
+                gtbbs = copy.deepcopy(self.grasp_files[idx])
+                for i, gtbb in enumerate(gtbbs):
+                    center, left, top = self._get_crop_attrs(gtbb)
+                    gtbb.rotate(rot, center)
+                    gtbb.offset((-top, -left))
+                    gtbb.zoom(zoom, (self.output_size // 2, self.output_size // 2))
+                    gtbbs[i] = gtbb
+                grasp_rectangles.append(gtbbs)
+
+        return grasp_rectangles
 
     def get_observation_dataset_name(self, idx):
         if self.depth_files[idx][-6:] == 'd.tiff':
@@ -81,7 +114,6 @@ class FineTuningDataset(GraspDatasetBase):
         else:
             return self.jacquard_dataset.get_depth_by_file_name(name)
 
-
     def get_part_of_dataset(self, start, end):
         splitted_dataset = copy.deepcopy(self)
         l = len(self.grasp_files)
@@ -94,26 +126,11 @@ class FineTuningDataset(GraspDatasetBase):
 
         return splitted_dataset
 
-    def apply_augmentation_to_dataset(self, train_dataset):
-        grasp_rectangles = GraspRectangles()
-        grasp_rectangles_transformed = GraspRectangles()
-        rectangles_after_augmentation = []
-        fine_tuned_dataset = FineTuningDataset()
-        for idx, _ in enumerate(train_dataset):
-            observation_dataset_name = train_dataset.get_observation_dataset_name(idx)
-            rectangles = train_dataset.get_gtbb(idx)
-            img = train_dataset.get_depth(idx)
-            rectangles_non_rotated, angles = set_rectangles_angles(rectangles)
-            bboxes = rectangles_non_rotated.get_albumentations_coco_bboxes(angles)
-            # rectangles.show(ax=None, shape=img.shape, img=img)
-            # rectangles_non_rotated.show(ax=None, shape=img.shape, img=img)
-            transformed = apply_data_augmentation(image=img, bboxes=bboxes,
-                                                  observation_dataset=observation_dataset_name)
-            img_transformed, bboxes_transformed = transformed['image'], transformed['bboxes']
-            rectangles_rotated = build_rectangle(bboxes_transformed)
-            # rectangles_rotated.show(ax=None, shape=img_transformed.shape, img=img_transformed)
-            fine_tuned_dataset.grasp_files = bboxes_transformed
-            fine_tuned_dataset.depth_files = img_transformed
+    def _get_crop_attrs(self, gtbbs):
+        center = gtbbs.center
+        left = max(0, min(center[1] - self.output_size // 2, 640 - self.output_size))
+        top = max(0, min(center[0] - self.output_size // 2, 480 - self.output_size))
+        return center, left, top
 
     def apply_augmentation_to_dataset_refactored(self, cornell, jacquard):
         fine_tuned_dataset = copy.deepcopy(self)
