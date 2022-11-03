@@ -22,7 +22,8 @@ def apply_data_augmentation(image, bboxes):
                 A.Blur(blur_limit=3, p=0.2),
                 A.MultiplicativeNoise(p=0.2),
                 A.MotionBlur(p=0.2),
-                A.MedianBlur(blur_limit=3, p=0.2)], p=0.3)
+                A.MedianBlur(blur_limit=3, p=0.2)], p=0.3),
+            A.PixelDropout(p=0.3)
         ], bbox_params=A.BboxParams(format='coco'))
         transformed = transform(image=image, bboxes=bboxes)
     else:
@@ -34,7 +35,8 @@ def apply_data_augmentation(image, bboxes):
                 A.Blur(blur_limit=3, p=0.2),
                 A.MultiplicativeNoise(p=0.2),
                 A.MotionBlur(p=0.2),
-                A.MedianBlur(blur_limit=3, p=0.2)], p=0.3)
+                A.MedianBlur(blur_limit=3, p=0.2)], p=0.3),
+            A.PixelDropout(p=0.3)
         ], bbox_params=A.BboxParams(format='coco'))
         transformed = transform(image=image, bboxes=bboxes)
 
