@@ -87,9 +87,10 @@ def calculate_iou(grasp_q, grasp_angle, ground_truth_bbs, no_grasps=1, grasp_wid
     else:
         gt_bbs = ground_truth_bbs
     gs = detect_grasps(grasp_q, grasp_angle, width_img=grasp_width, no_grasps=no_grasps)
-    ious = []
 
     for idx, g in enumerate(gs):
-        ious[idx] = g.max_iou(gt_bbs)
+        max_iou = 0
+        if g.max_iou(gt_bbs) > max_iou:
+            max_iou = g.max_iou(gt_bbs)
 
-    return ious
+    return max_iou

@@ -6,6 +6,7 @@ import torch
 from utils.data.cornell_data import CornellDataset
 from utils.data.grasp_data import GraspDatasetBase
 from utils.data.jacquard_data import JacquardDataset
+from sklearn.utils import shuffle
 # from utils.data.fine_tuning_dataset import FineTuningDataset
 
 import numpy as np
@@ -35,15 +36,31 @@ class FineTuningDataset(GraspDatasetBase):
         self.cornell_grasp = CornellDataset(cornell_file_path)
         self.jacquard_dataset = JacquardDataset(jacquard_sample_file_path)
 
-        self.grasp_files = self.jacquard_dataset.grasp_files + self.cornell_grasp.grasp_files
+        self.grasp_files = self.cornell_grasp.grasp_files + self.jacquard_dataset.grasp_files
         self.depth_files = self.cornell_grasp.depth_files + self.jacquard_dataset.depth_files
         self.rgb_files = None
 
         if self.include_rgb == 1:
             self.rgb_files = self.cornell_grasp.rgb_files + self.jacquard_dataset.rgb_files
 
+        self.shuffle_dataset()
+        print()
+
         # del self.jacquard_dataset
         # del self.cornell_grasp
+
+    def shuffle_dataset(self):
+        if self.rgb_files is None:
+            shuffled_grasp, shuffled_depth = shuffle(self.grasp_files, self.depth_files)
+            self.grasp_files = shuffled_grasp
+            self.depth_files = shuffled_depth
+        else:
+            shuffled_grasp, shuffled_depth, shuffled_rgb = shuffle(self.grasp_files, self.depth_files, self.rgb_files)
+            self.grasp_files = shuffled_grasp
+            self.depth_files = shuffled_depth
+            self.rgb_files = shuffled_rgb
+
+
 
     def get_gtbb_by_name(self, name):
         """
