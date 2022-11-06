@@ -49,8 +49,8 @@ class FineTuningDataset(GraspDatasetBase):
             self.rgb_files = self.cornell_grasp.rgb_files + self.jacquard_dataset.rgb_files
             self.rgb_files = self.rgb_files[int(l * start):int(l * end)]
 
-        self.shuffle_dataset()
-        print()
+        # self.shuffle_dataset()
+        # print()
 
         # del self.jacquard_dataset
         # del self.cornell_grasp
@@ -65,7 +65,6 @@ class FineTuningDataset(GraspDatasetBase):
             self.grasp_files = shuffled_grasp
             self.depth_files = shuffled_depth
             self.rgb_files = shuffled_rgb
-
 
 
     def get_gtbb_by_name(self, name):

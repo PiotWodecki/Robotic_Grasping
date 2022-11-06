@@ -294,13 +294,19 @@ def train_with_fine_tuning(args):
     """
     logging.info('Loading {} Dataset and {} to fine tune'.format(args.dataset.title(), args.fine_tuning_dataset.title()))
 
-    whole_dataset = FineTuningDataset(args.dataset_path, args.fine_tuning_path, ds_rotate=args.ds_rotate,
+    # Dataset = FineTuningDataset(args.dataset_path, args.fine_tuning_path, ds_rotate=args.ds_rotate,
+    #                                 random_rotate=False, random_zoom=False,
+    #                                 include_depth=args.use_depth, include_rgb=args.use_rgb)
+
+    train_dataset = FineTuningDataset(args.dataset_path, args.fine_tuning_path, ds_rotate=args.ds_rotate,
                                     random_rotate=False, random_zoom=False,
-                                    include_depth=args.use_depth, include_rgb=args.use_rgb)
+                                    include_depth=args.use_depth, include_rgb=args.use_rgb,
+                                    start=0, end=args.split)
 
-    whole_dataset = whole_dataset.apply_augmentation_to_dataset_refactored(args.dataset_path, args.fine_tuning_path)
+    train_dataset.shuffle_dataset()
 
-    train_dataset = whole_dataset.get_part_of_dataset(start=0.0, end=args.split)
+    train_dataset = train_dataset.apply_augmentation_to_dataset_refactored(args.dataset_path, args.fine_tuning_path)
+
     train_data = torch.utils.data.DataLoader(
         train_dataset,
         batch_size=args.batch_size,
@@ -308,7 +314,12 @@ def train_with_fine_tuning(args):
         num_workers=args.num_workers
     )
 
-    val_dataset = whole_dataset.get_part_of_dataset(start=args.split, end=1.0)
+    val_dataset = FineTuningDataset(args.dataset_path, args.fine_tuning_path, ds_rotate=args.ds_rotate,
+                                    random_rotate=False, random_zoom=False,
+                                    include_depth=args.use_depth, include_rgb=args.use_rgb,
+                                    start=args.split, end=1)
+    val_dataset.shuffle_dataset()
+
     val_data = torch.utils.data.DataLoader(
         val_dataset,
         batch_size = 1,
