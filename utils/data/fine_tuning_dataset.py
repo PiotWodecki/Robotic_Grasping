@@ -66,7 +66,6 @@ class FineTuningDataset(GraspDatasetBase):
             self.depth_files = shuffled_depth
             self.rgb_files = shuffled_rgb
 
-
     def get_gtbb_by_name(self, name):
         """
         Function to use correct get_gtbb function depending on the dataset
@@ -176,6 +175,21 @@ class FineTuningDataset(GraspDatasetBase):
             rectangles_rotated = build_rectangle(bboxes_transformed)
             fine_tuned_dataset.grasp_files[idx[0]] = rectangles_rotated
             fine_tuned_dataset.depth_files[idx[0]] = img_transformed
+
+        return fine_tuned_dataset
+
+    def fix_validation_without_augmentation(self):
+        fine_tuned_dataset = copy.deepcopy(self)
+
+        for idx in enumerate(self.depth_files):
+
+            rectangles_name = self.get_gtbb(idx[0])
+            rectangles = self.get_gtbb_by_name(rectangles_name)
+            img_name = self.get_depth(idx[0])
+            img = self.get_depth_image_from_name(img_name)
+
+            fine_tuned_dataset.grasp_files[idx[0]] = rectangles
+            fine_tuned_dataset.depth_files[idx[0]] = img
 
         return fine_tuned_dataset
 

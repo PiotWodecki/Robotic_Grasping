@@ -320,6 +320,8 @@ def train_with_fine_tuning(args):
                                     start=args.split, end=1)
     val_dataset.shuffle_dataset()
 
+    val_dataset = val_dataset.fix_validation_without_augmentation()
+
     val_data = torch.utils.data.DataLoader(
         val_dataset,
         batch_size = 1,
