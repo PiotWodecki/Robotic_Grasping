@@ -40,8 +40,14 @@ class FineTuningDataset(GraspDatasetBase):
         self.depth_files = self.cornell_grasp.depth_files + self.jacquard_dataset.depth_files
         self.rgb_files = None
 
+        l = len(self.grasp_files)
+
+        self.grasp_files = self.grasp_files[int(l*start):int(l*end)]
+        self.depth_files = self.depth_files[int(l*start):int(l*end)]
+
         if self.include_rgb == 1:
             self.rgb_files = self.cornell_grasp.rgb_files + self.jacquard_dataset.rgb_files
+            self.rgb_files = self.rgb_files[int(l * start):int(l * end)]
 
         self.shuffle_dataset()
         print()
@@ -165,6 +171,7 @@ class FineTuningDataset(GraspDatasetBase):
             img = self.get_depth_image_from_name(img_name)
             rectangles_non_rotated, angles = set_rectangles_angles(rectangles)
             bboxes = rectangles_non_rotated.get_albumentations_coco_bboxes(angles)
+
             transformed = apply_data_augmentation(image=np.array(img), bboxes=bboxes)
             img_transformed, bboxes_transformed = transformed['image'], transformed['bboxes']
             rectangles_rotated = build_rectangle(bboxes_transformed)
