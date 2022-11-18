@@ -35,8 +35,8 @@ def parse_args():
     parser.add_argument('--network', type=str, default='ggcnn', help='Network Name in .models')
 
     # Dataset & Data & Training
-    parser.add_argument('--dataset', type=str, help='Dataset Name ("cornell" or "jaquard")')
-    parser.add_argument('--dataset-path', type=str, help='Path to dataset')
+    # parser.add_argument('--dataset', type=str, help='Dataset Name ("cornell" or "jaquard")')
+    # parser.add_argument('--dataset-path', type=str, help='Path to dataset')
     parser.add_argument('--transfer_learning_dataset', type=str, help='dataset for transfer learinng ("cornell" or "jaquard")')
     parser.add_argument('--transfer_learning_path', type=str, help='Trained model path')
 
@@ -228,29 +228,30 @@ def train_without_fine_tuning(args):
     net = net.to(device)
 
     if args.transfer_learning_dataset is None:
-        optimizer = optim.Adam(net.parameters())
-        logging.info('Loading {} Dataset...'.format(args.dataset.title()))
-        Dataset = get_dataset(args.dataset)
-
-        train_dataset = Dataset(args.dataset_path, start=0.0, end=args.split, ds_rotate=args.ds_rotate,
-                                random_rotate=False, random_zoom=False,
-                                include_depth=args.use_depth, include_rgb=args.use_rgb)
-        train_data = torch.utils.data.DataLoader(
-            train_dataset,
-            batch_size=args.batch_size,
-            shuffle=True,
-            num_workers=args.num_workers
-        )
-        val_dataset = Dataset(args.dataset_path, start=args.split, end=1.0, ds_rotate=args.ds_rotate,
-                              random_rotate=False, random_zoom=False,
-                              include_depth=args.use_depth, include_rgb=args.use_rgb)
-        val_data = torch.utils.data.DataLoader(
-            val_dataset,
-            batch_size=1,
-            shuffle=False,
-            num_workers=args.num_workers
-        )
-        logging.info('Done')
+        pass
+        # optimizer = optim.Adam(net.parameters())
+        # logging.info('Loading {} Dataset...'.format(args.dataset.title()))
+        # Dataset = get_dataset(args.dataset)
+        #
+        # train_dataset = Dataset(args.dataset_path, start=0.0, end=args.split, ds_rotate=args.ds_rotate,
+        #                         random_rotate=False, random_zoom=False,
+        #                         include_depth=args.use_depth, include_rgb=args.use_rgb)
+        # train_data = torch.utils.data.DataLoader(
+        #     train_dataset,
+        #     batch_size=args.batch_size,
+        #     shuffle=True,
+        #     num_workers=args.num_workers
+        # )
+        # val_dataset = Dataset(args.dataset_path, start=args.split, end=1.0, ds_rotate=args.ds_rotate,
+        #                       random_rotate=False, random_zoom=False,
+        #                       include_depth=args.use_depth, include_rgb=args.use_rgb)
+        # val_data = torch.utils.data.DataLoader(
+        #     val_dataset,
+        #     batch_size=1,
+        #     shuffle=False,
+        #     num_workers=args.num_workers
+        # )
+        # logging.info('Done')
     else:
         optimizer = optim.Adam(net.parameters())
         for g in optimizer.param_groups:
