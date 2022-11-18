@@ -259,7 +259,7 @@ def train_without_fine_tuning(args):
         net.load_state_dict(torch.load(args.weights_path, map_location=device))
         net.eval()
         net = freeze_layers(net)
-        logging.info('Loading {} Dataset...'.format(args.dataset.title()))
+        # logging.info('Loading {} Dataset...'.format(args.dataset.title()))
         Dataset = get_dataset(args.dataset)
 
         train_dataset = Dataset(args.transfer_learning_dataset, start=0.0, end=0.1, ds_rotate=args.ds_rotate,
