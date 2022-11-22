@@ -34,7 +34,11 @@ class GGCNN(nn.Module):
 
     def forward(self, x):
         device = get_device()
+        if type(x) is list:
+            x = x[0]
+
         x = x.to(device)
+        x = x.to(torch.device('cpu'))
         x = F.relu(self.conv1(x))
         x = F.relu(self.conv2(x))
         x = F.relu(self.conv3(x))
@@ -50,6 +54,10 @@ class GGCNN(nn.Module):
         return pos_output, cos_output, sin_output, width_output
 
     def compute_loss(self, xc, yc):
+        device = get_device()
+
+        yc = [y.to(device) for y in yc]
+        xc = [x.to(device) for x in xc]
 
         y_pos, y_cos, y_sin, y_width = yc
 
@@ -83,3 +91,11 @@ class GGCNN(nn.Module):
                 'width': width_pred
             }
         }
+
+    def freeze_layers(self):
+        self.conv1.requires_grad_ = False
+        self.conv2.requires_grad_ = False
+        self.conv3.requires_grad_ = False
+        self.convt1.requires_grad_ = False
+        self.convt2.requires_grad_ = False
+        self.convt3.requires_grad_ = False

@@ -88,3 +88,7 @@ class GGCNN2(nn.Module):
                 'width': width_pred
             }
         }
+
+    def freeze_sequential_layers(self):
+        for x in self.features:
+            x.requires_grad_ = False

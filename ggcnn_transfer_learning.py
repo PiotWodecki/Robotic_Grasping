@@ -15,7 +15,10 @@ from torchsummary import summary
 
 import tensorboardX
 
+import models
 from utils.data_processing.device_handler import get_device
+from models.ggcnn import GGCNN
+from models.ggcnn2 import GGCNN2
 # from utils.data_processing.fine_tune_dataset_creator import apply_augmentation_to_dataset
 from utils.visualisation.gridshow import gridshow
 
@@ -39,6 +42,7 @@ def parse_args():
     # parser.add_argument('--dataset-path', type=str, help='Path to dataset')
     parser.add_argument('--transfer_learning_dataset', type=str, help='dataset for transfer learinng ("cornell" or "jaquard")')
     parser.add_argument('--transfer_learning_path', type=str, help='Trained model path')
+    parser.add_argument('--transfer_learning_lr', type=float, default=0.0001, help='Learning rate for transfer learning')
 
     parser.add_argument('--weights_path', type=str, help='Path for pretrained model weights')
     parser.add_argument('--use-depth', type=int, default=1, help='Use Depth image for training (1/0)')
@@ -66,13 +70,14 @@ def parse_args():
 
 def freeze_layers(net):
     net = copy.deepcopy(net)
-    net.conv1.requires_grad_ = False
-    net.conv2.requires_grad_ = False
-    net.conv3.requires_grad_ = False
-    net.convt1.requires_grad_ = False
-    net.convt2.requires_grad_ = False
-    net.convt3.requires_grad_ = True
-    return net
+    if isinstance(net, models.ggcnn.GGCNN):
+        net.freeze_layers()
+        return net
+    elif isinstance(net, models.ggcnn2.GGCNN2):
+        net.freeze_layers()
+    else:
+        pass
+
 
 
 def validate(net, device, val_data, batches_per_epoch):
@@ -98,6 +103,7 @@ def validate(net, device, val_data, batches_per_epoch):
     }
 
     ld = len(val_data)
+    print(ld)
 
     with torch.no_grad():
         batch_idx = 0
@@ -255,15 +261,15 @@ def train_without_fine_tuning(args):
     else:
         optimizer = optim.Adam(net.parameters())
         for g in optimizer.param_groups:
-            g['lr'] = 0.0001
+            g['lr'] = args.transfer_learning_lr
         net.load_state_dict(torch.load(args.weights_path, map_location=device))
         net.eval()
         net = freeze_layers(net)
         logging.info('Loading {} Dataset...'.format(args.transfer_learning_dataset.title()))
         Dataset = get_dataset(args.transfer_learning_dataset)
 
-        train_dataset = Dataset(args.transfer_learning_dataset, start=0.0, end=0.1, ds_rotate=args.ds_rotate,
-                                random_rotate=False, random_zoom=False,
+        train_dataset = Dataset(args.transfer_learning_dataset, start=0.0, end=args.split, ds_rotate=args.ds_rotate,
+                                random_rotate=True, random_zoom=True,
                                 include_depth=args.use_depth, include_rgb=args.use_rgb)
         train_data = torch.utils.data.DataLoader(
             train_dataset,
@@ -271,8 +277,8 @@ def train_without_fine_tuning(args):
             shuffle=True,
             num_workers=args.num_workers
         )
-        val_dataset = Dataset(args.dataset_path, start=0.1, end=0.11, ds_rotate=args.ds_rotate,
-                              random_rotate=False, random_zoom=False,
+        val_dataset = Dataset(args.dataset_path, start=args.split, end=1.0, ds_rotate=args.ds_rotate,
+                              random_rotate=True, random_zoom=True,
                               include_depth=args.use_depth, include_rgb=args.use_rgb)
         val_data = torch.utils.data.DataLoader(
             val_dataset,
