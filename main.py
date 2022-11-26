@@ -1,15 +1,11 @@
 import torch
 import math
-
-# Press ⌃R to execute it or replace it with your code.
-# Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
 from utils.data_processing.device_handler import get_device
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press ⌘F8 to toggle the breakpoint.
-
+"""
+Here, you can check if the Mac M1 mps is working.
+"""
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
@@ -53,4 +49,3 @@ if __name__ == '__main__':
 
     print(f'Result: y = {a.item()} + {b.item()} x + {c.item()} x^2 + {d.item()} x^3')
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/

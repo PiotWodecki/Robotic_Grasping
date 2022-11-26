@@ -3,8 +3,8 @@ import logging
 
 import torch.utils.data
 
+from models import get_network
 from models.common import post_process_output
-from models.ggcnn import GGCNN
 from utils.data_processing import evaluation, grasp
 from utils.data import get_dataset
 from utils.data_processing.device_handler import get_device
@@ -47,15 +47,12 @@ def parse_args():
 if __name__ == '__main__':
     args = parse_args()
 
-    # # Load Network
-    # device = get_device()
-    # net = torch.load(args.network, map_location=device)
-
     device = get_device()
-    net = GGCNN()
+    ggcnn = get_network(args.network)
+    input_channels = 1 * args.use_depth + 3 * args.use_rgb
+    net = ggcnn(input_channels=input_channels)
     net.load_state_dict(torch.load(args.network, map_location=device))
     net.eval()
-
 
     # Load Dataset
     logging.info('Your device: '.format(str(device)))

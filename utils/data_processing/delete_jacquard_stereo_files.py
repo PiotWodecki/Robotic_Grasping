@@ -1,7 +1,6 @@
 import argparse
 import glob
 import os
-from pathlib import Path
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Remove unnecessary *_stereo_depth.tiff')

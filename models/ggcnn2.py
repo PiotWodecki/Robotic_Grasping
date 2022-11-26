@@ -1,6 +1,7 @@
-import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
+from utils.data_processing.device_handler import get_device
 
 
 class GGCNN2(nn.Module):
@@ -56,6 +57,8 @@ class GGCNN2(nn.Module):
 
     def forward(self, x):
         x = self.features(x)
+        device = get_device()
+        x = x.to(device)
 
         pos_output = self.pos_output(x)
         cos_output = self.cos_output(x)
@@ -89,6 +92,6 @@ class GGCNN2(nn.Module):
             }
         }
 
-    def freeze_sequential_layers(self):
+    def freeze_layers(self):
         for x in self.features:
             x.requires_grad_ = False

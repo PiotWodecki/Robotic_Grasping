@@ -1,6 +1,5 @@
 import torch.nn as nn
 import torch.nn.functional as F
-import torch
 
 from utils.data_processing.device_handler import get_device
 
@@ -38,7 +37,6 @@ class GGCNN(nn.Module):
             x = x[0]
 
         x = x.to(device)
-        x = x.to(torch.device('cpu'))
         x = F.relu(self.conv1(x))
         x = F.relu(self.conv2(x))
         x = F.relu(self.conv3(x))
@@ -61,15 +59,9 @@ class GGCNN(nn.Module):
 
         y_pos, y_cos, y_sin, y_width = yc
 
-        ########
-        device = get_device()
         y_pos, y_cos, y_sin, y_width = y_pos.to(device), y_cos.to(device), y_sin.to(device), y_width.to(device)
-        ########
         pos_pred, cos_pred, sin_pred, width_pred = self(xc)
-
-        ########
         pos_pred, cos_pred, sin_pred, width_pred = pos_pred.to(device), cos_pred.to(device), sin_pred.to(device), width_pred.to(device)
-        ########
 
         p_loss = F.mse_loss(pos_pred, y_pos)
         cos_loss = F.mse_loss(cos_pred, y_cos)
